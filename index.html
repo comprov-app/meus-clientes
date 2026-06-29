@@ -76,9 +76,6 @@ select option{background:#1a1a2e}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:13px 26px;border-radius:28px;font-size:15px;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.55);pointer-events:none;transition:opacity .3s}
 
 
-.tipo-badge{display:inline-block;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-top:6px}
-.tipo-box{background:#1a1a0d;color:#ffd700;border:1px solid #4a4a1a}
-.tipo-exc{background:#0d1a2b;color:#7799ff;border:1px solid #1a3a5a}
 </style>
 </head>
 <body>
@@ -273,7 +270,6 @@ function toggleSelMode(){
   $$("btnSel").style.background=selMode?"#2a1010":"none";
   $$("selBar").style.display=selMode?"flex":"none";
   $$("fab").style.display=selMode?"none":"flex";
-
   $$("cbAll").checked=false;updSel();render();
 }
 function showConf(msg,cb){$$("confMsg").textContent=msg;onConf=cb;$$("ovConf").style.display="flex";}
@@ -331,18 +327,6 @@ function openDet(id){
 }
 function closeDet(){$$("ovDet").style.display="none";}
 
-/* ---- CONFIGURACOES ---- */
-
-
-
-/* ---- SCAN COM OPENROUTER ---- */
-
-
-
-
-
-
-/* ---- EVENTOS SCAN ---- */
 /* ---- OUTROS EVENTOS ---- */
 $$("btnPdf").addEventListener("click",function(){
   if(!C.length){toast("Nenhum cliente cadastrado!");return;}
@@ -384,6 +368,17 @@ $$("fab").addEventListener("click",function(){
   if(selMode) return;
   openForm(null);
 });
+$$("xForm").addEventListener("click",closeForm);
+$$("xForm2").addEventListener("click",closeForm);
+$$("btnSave").addEventListener("click",salvar);
+$$("btnDel1").addEventListener("click",delUm);
+$$("pbPago").addEventListener("click",function(){setPag("PAGO");});
+$$("pbPend").addEventListener("click",function(){setPag("PENDENTE");});
+$$("xDet").addEventListener("click",closeDet);
+$$("btnEdit").addEventListener("click",function(){closeDet();openForm(dId);});
+$$("btnNo").addEventListener("click",closeConf);
+$$("btnYes").addEventListener("click",function(){if(onConf)onConf();closeConf();});
+
 
 loadData();render();
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}

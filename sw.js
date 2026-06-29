@@ -31,12 +31,6 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
-  // Ignorar requisicoes de API (nao cachear)
-  if (e.request.url.includes('groq.com') ||
-      e.request.url.includes('openrouter.ai') ||
-      e.request.url.includes('googleapis.com')) {
-    return;
-  }
   e.respondWith(
     caches.match(e.request).then(function(cached) {
       if (cached) return cached;
@@ -47,9 +41,7 @@ self.addEventListener('fetch', function(e) {
           cache.put(e.request, clone);
         });
         return response;
-      }).catch(function() {
-        return cached;
-      });
+      }).catch(function() { return cached; });
     })
   );
 });
