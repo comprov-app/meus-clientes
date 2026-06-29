@@ -22,7 +22,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .topbar h1{flex:1;font-size:19px;font-weight:600}
 .tbtn{background:none;border:1.5px solid #444;border-radius:10px;color:#aaa;font-size:13px;padding:8px 11px;cursor:pointer;white-space:nowrap;-webkit-appearance:none;min-height:44px}
 #btnPdf{border-color:#2255ff;color:#7799ff}
-#btnConfig{font-size:18px;padding:8px 10px;border-color:#555}
 #selBar{display:none;align-items:center;padding:12px 14px;background:#1e1e40;border-bottom:1px solid #2a2a5a;gap:10px;flex-shrink:0}
 #selBar label{display:flex;align-items:center;gap:10px;font-size:16px;flex:1;cursor:pointer}
 #selBar input{width:22px;height:22px;accent-color:#2255ff;cursor:pointer}
@@ -45,8 +44,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .tp{background:#2b0d0d;color:#f44336;border:1px solid #4a1a1a}
 .empty{text-align:center;padding:80px 20px;color:#444;font-size:17px;line-height:2.4}
 .fab{position:absolute;bottom:26px;right:18px;width:62px;height:62px;border-radius:50%;background:#2255ff;border:none;color:#fff;font-size:34px;cursor:pointer;box-shadow:0 6px 24px rgba(34,85,255,.6);z-index:5;display:flex;align-items:center;justify-content:center;-webkit-appearance:none}
-.fab-cam{position:absolute;bottom:26px;right:92px;width:62px;height:62px;border-radius:50%;background:#1a3a6a;border:2px solid #2255ff;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 6px 24px rgba(34,85,255,.4);z-index:5;display:flex;align-items:center;justify-content:center;-webkit-appearance:none}
-.fab-cam:active{transform:scale(0.93)}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:40;display:none;align-items:flex-end;justify-content:center}
 .sheet{background:#1a1a2e;border:1.5px solid #2a2a5a;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding-bottom:40px;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .shead{display:flex;align-items:center;padding:16px 17px;border-bottom:1px solid #2a2a5a;gap:12px;position:sticky;top:0;background:#1a1a2e;z-index:1}
@@ -77,14 +74,8 @@ select option{background:#1a1a2e}
 .dlbl{font-size:13px;color:#666;min-width:100px}
 .dval{font-size:16px;color:#e0e0e0}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:13px 26px;border-radius:28px;font-size:15px;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.55);pointer-events:none;transition:opacity .3s}
-.btn-scan{width:100%;padding:18px;border-radius:14px;border:2px dashed #2255ff;background:#07071a;color:#7799ff;font-size:17px;font-weight:600;cursor:pointer;min-height:62px;display:flex;align-items:center;justify-content:center;gap:12px;-webkit-appearance:none}
-.btn-scan:active{background:#0d0d2e}
-.btn-scan:disabled{opacity:.5;cursor:default}
-.scan-hint{font-size:13px;color:#555;text-align:center;margin-top:8px}
-.key-status{font-size:13px;margin-top:8px;padding:9px 13px;border-radius:8px}
-.key-ok{background:#0d2b0d;color:#4caf50}
-.key-no{background:#2b0d0d;color:#f44336}
-.info-box{background:#0d0d22;border:1px solid #2a2a5a;border-radius:12px;padding:16px;font-size:14px;color:#888;line-height:1.9}
+
+
 .tipo-badge{display:inline-block;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-top:6px}
 .tipo-box{background:#1a1a0d;color:#ffd700;border:1px solid #4a4a1a}
 .tipo-exc{background:#0d1a2b;color:#7799ff;border:1px solid #1a3a5a}
@@ -94,7 +85,7 @@ select option{background:#1a1a2e}
 <div class="app">
   <div class="topbar">
     <h1>&#x1F465; Meus Clientes</h1>
-    <button class="tbtn" id="btnConfig">&#x2699;</button>
+
     <button class="tbtn" id="btnPdf">&#x1F4C4; PDF</button>
     <button class="tbtn" id="btnSel">&#x2611; Sel.</button>
   </div>
@@ -130,8 +121,6 @@ select option{background:#1a1a2e}
   <div class="srch"><input id="srch" placeholder="&#x1F50D;  Buscar cliente..."></div>
   <div id="list"></div>
   <button class="fab" id="fab">+</button>
-  <button class="fab-cam" id="fabCam">&#x1F4F7;</button>
-  <input type="file" id="scanFileFab" accept="image/*" capture="environment" style="display:none">
 </div>
 
 <!-- FORM -->
@@ -142,12 +131,7 @@ select option{background:#1a1a2e}
       <span class="shead-t" id="fTitle">Novo Cliente</span>
     </div>
     <div class="fbody">
-      <div class="fg">
-        <label>Escanear Etiqueta</label>
-        <button class="btn-scan" id="btnScan">&#x1F4F7; Fotografar Etiqueta</button>
-        <input type="file" id="scanFile" accept="image/*" capture="environment" style="display:none">
-        <div class="scan-hint" id="scanHint">Aponte a camera para a etiqueta D'Leia</div>
-      </div>
+
       <div class="fg">
         <label>Nome <span class="req">*</span></label>
         <input id="fNome" placeholder="Nome do cliente" autocomplete="off" autocorrect="off" autocapitalize="words">
@@ -208,31 +192,7 @@ select option{background:#1a1a2e}
   </div>
 </div>
 
-<!-- CONFIGURACOES -->
-<div class="ov" id="ovConfig">
-  <div class="sheet">
-    <div class="shead">
-      <button class="bback" id="xConfig">&#8592;</button>
-      <span class="shead-t">&#x2699; Configuracoes</span>
-    </div>
-    <div class="fbody">
-      <div class="fg">
-        <label>Chave API do Groq</label>
-        <input type="password" id="apiKeyInput" placeholder="gsk_...">
-        <div id="keyStatus"></div>
-        <button id="btnSaveKey" style="margin-top:12px;width:100%;background:#2255ff;border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:600;padding:14px;cursor:pointer;min-height:52px">Salvar Chave</button>
-      </div>
-      <div class="info-box">
-        <strong style="color:#e0e0e0">Como obter a chave GRATIS:</strong><br>
-        1. Acesse <strong style="color:#7799ff">console.groq.com</strong><br>
-        2. Clique em <strong style="color:#e0e0e0">Sign in</strong> (conta Google)<br>
-        3. Va em <strong style="color:#e0e0e0">API Keys</strong> no menu<br>
-        4. Clique em <strong style="color:#e0e0e0">Create API Key</strong><br>
-        5. Copie e cole aqui<br><br>
-        <span style="color:#4caf50">&#x2714; 100% gratis, sem cartao, funciona no Brasil</span>
-      </div>
-    </div>
-  </div>
+
 </div>
 
 <script>
@@ -313,7 +273,7 @@ function toggleSelMode(){
   $$("btnSel").style.background=selMode?"#2a1010":"none";
   $$("selBar").style.display=selMode?"flex":"none";
   $$("fab").style.display=selMode?"none":"flex";
-  $$("fabCam").style.display=selMode?"none":"flex";
+
   $$("cbAll").checked=false;updSel();render();
 }
 function showConf(msg,cb){$$("confMsg").textContent=msg;onConf=cb;$$("ovConf").style.display="flex";}
@@ -331,8 +291,7 @@ function openForm(id){
   $$("fNome").value=c?c.nome:"";
   $$("fEnt").value=c?c.ent:"";
   $$("btnDel1").style.display=c?"block":"none";
-  $$("scanHint").textContent="Aponte a camera para a etiqueta D'Leia";
-  $$("scanHint").style.color="";
+
   setPag(c?c.pag:"PENDENTE");
   $$("ovForm").style.display="flex";
 }
@@ -373,130 +332,17 @@ function openDet(id){
 function closeDet(){$$("ovDet").style.display="none";}
 
 /* ---- CONFIGURACOES ---- */
-function openConfig(){
-  var key=localStorage.getItem("groq_api_key")||"";
-  $$("apiKeyInput").value="";
-  atualizarKeyStatus(key);
-  $$("ovConfig").style.display="flex";
-}
-function closeConfig(){$$("ovConfig").style.display="none";}
-function atualizarKeyStatus(key){
-  var el=$$("keyStatus");
-  if(key){el.className="key-status key-ok";el.textContent="Chave configurada - pronto para escanear!";}
-  else{el.className="key-status key-no";el.textContent="Nenhuma chave configurada";}
-}
+
+
 
 /* ---- SCAN COM OPENROUTER ---- */
-function mapSetor(setor){
-  if(!setor)return;
-  var s=setor.toLowerCase()
-    .replace(/[\u00e0-\u00e5]/g,"a").replace(/[\u00e8-\u00eb]/g,"e")
-    .replace(/[\u00ec-\u00ef]/g,"i").replace(/[\u00f2-\u00f6]/g,"o")
-    .replace(/[\u00f9-\u00fc]/g,"u").replace(/[^a-z0-9 ]/g," ").trim();
-  var sel=$$("fEnt");
-  var map={"laranja":1,"verde":2,"branco":3,"azul":4,"vermelho":5,"amarelo":6,"box":7,"rua":8,"altas":9};
-  for(var k in map){
-    if(s.indexOf(k)>=0){sel.selectedIndex=map[k];return;}
-  }
-}
 
-function resizeImg(file,cb){
-  var reader=new FileReader();
-  reader.onload=function(ev){
-    var img=new Image();
-    img.onload=function(){
-      var max=1200,scale=Math.min(max/img.width,max/img.height,1);
-      var canvas=document.createElement("canvas");
-      canvas.width=Math.round(img.width*scale);
-      canvas.height=Math.round(img.height*scale);
-      canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
-      cb(canvas.toDataURL("image/jpeg",0.85).split(",")[1]);
-    };
-    img.src=ev.target.result;
-  };
-  reader.readAsDataURL(file);
-}
 
-function lerEtiqueta(b64,apiKey){
-  var prompt="Analise esta etiqueta da D'Leia Moda Fitness. REGRAS: Se a etiqueta tiver uma BORDA PRETA GROSSA ao redor, tipo=BOX. Se nao tiver borda preta, tipo=EXCURSAO. Retorne SOMENTE este JSON: {\"tipo\":\"BOX ou EXCURSAO\",\"nome\":\"nome completo do cliente\",\"setor\":\"cor do Setor se EXCURSAO (Verde/Branco/Azul/Laranja/Vermelho/Amarelo) ou vazio se BOX\",\"pagamento\":\"PAGO ou PENDENTE\"}. Apenas JSON puro.";
-  return fetch("https://api.groq.com/openai/v1/chat/completions",{
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json",
-      "Authorization":"Bearer "+apiKey
-    },
-    body:JSON.stringify({
-      model:"llama-3.2-11b-vision-preview",
-      messages:[{role:"user",content:[
-        {type:"image_url",image_url:{url:"data:image/jpeg;base64,"+b64}},
-        {type:"text",text:prompt}
-      ]}],
-      max_tokens:300,
-      temperature:0
-    })
-  })
-  .then(function(r){
-    return r.json().then(function(d){
-      if(!r.ok){throw new Error((d&&d.error&&d.error.message)||"HTTP "+r.status);}
-      return d;
-    });
-  })
-  .then(function(data){
-    if(!data.choices||!data.choices[0])throw new Error("Resposta vazia");
-    var txt=data.choices[0].message.content.replace(/```json|```/g,"").trim();
-    var m=txt.match(/\{[\s\S]*?\}/);
-    if(!m)throw new Error("JSON invalido: "+txt.substring(0,80));
-    return JSON.parse(m[0]);
-  });
-}
+
+
+
 
 /* ---- EVENTOS SCAN ---- */
-$$("btnScan").addEventListener("click",function(){
-  var key=localStorage.getItem("groq_api_key");
-  if(!key){toast("Configure a chave API primeiro!");openConfig();return;}
-  $$("scanFile").click();
-});
-
-$$("scanFile").addEventListener("change",function(e){
-  var file=e.target.files[0];if(!file)return;
-  e.target.value="";
-  var key=localStorage.getItem("groq_api_key");
-  if(!key){toast("Configure a chave API primeiro!");return;}
-
-  var btn=$$("btnScan"),hint=$$("scanHint");
-  btn.disabled=true;
-  btn.innerHTML="&#x23F3; Analisando etiqueta...";
-  hint.textContent="Identificando tipo e lendo dados...";
-  hint.style.color="#7799ff";
-
-  resizeImg(file,function(b64){
-    lerEtiqueta(b64,key)
-    .then(function(res){
-      if(res.nome)$$("fNome").value=res.nome;
-      if(res.tipo==="BOX"){
-        $$("fEnt").selectedIndex=7;
-        hint.textContent="Etiqueta BOX detectada!";
-      } else {
-        if(res.setor)mapSetor(res.setor);
-        hint.textContent="Etiqueta Excursao - Setor: "+(res.setor||"?");
-      }
-      setPag(res.pagamento==="PAGO"?"PAGO":"PENDENTE");
-      toast("Etiqueta lida! Confira os dados.");
-      hint.style.color="#4caf50";
-    })
-    .catch(function(err){
-      toast("Erro ao ler etiqueta. Tente novamente.");
-      hint.textContent="Erro - tente fotografar novamente";
-      hint.style.color="#f44336";
-    })
-    .then(function(){
-      btn.disabled=false;
-      btn.innerHTML="&#x1F4F7; Fotografar Etiqueta";
-      setTimeout(function(){hint.textContent="Aponte a camera para a etiqueta D'Leia";hint.style.color="";},5000);
-    });
-  });
-});
-
 /* ---- OUTROS EVENTOS ---- */
 $$("btnPdf").addEventListener("click",function(){
   if(!C.length){toast("Nenhum cliente cadastrado!");return;}
@@ -537,71 +383,6 @@ $$("srch").addEventListener("input",render);
 $$("fab").addEventListener("click",function(){
   if(selMode) return;
   openForm(null);
-});
-
-$$("fabCam").addEventListener("click",function(){
-  if(selMode) return;
-  var key=localStorage.getItem("groq_api_key");
-  if(!key){toast("Configure a chave API primeiro!");openConfig();return;}
-  $$("scanFileFab").click();
-});
-
-$$("scanFileFab").addEventListener("change",function(e){
-  var file=e.target.files[0];if(!file)return;
-  e.target.value="";
-  var key=localStorage.getItem("groq_api_key");
-  if(!key){toast("Configure a chave API primeiro!");return;}
-
-  toast("&#x23F3; Analisando etiqueta...");
-
-  resizeImg(file,function(b64){
-    lerEtiqueta(b64,key)
-    .then(function(res){
-      // Monta o objeto e salva direto
-      var nome=(res.nome||"").trim();
-      if(!nome){toast("Nao consegui ler o nome. Tente novamente.");return;}
-      var ent="";
-      if(res.tipo==="BOX"){
-        ent="&#x1F4E6; BOX";
-      } else {
-        var map={"laranja":"&#x1F7E0; Laranja","verde":"&#x1F7E2; Verde","branco":"&#x26AA; Branco","azul":"&#x1F535; Azul","vermelho":"&#x1F534; Vermelho","amarelo":"&#x1F7E1; Amarelo","box":"&#x1F4E6; BOX","rua":"&#x1F6E3; Rua","altas":"&#x1F319; Altas Horas"};
-        var s=(res.setor||"").toLowerCase()
-          .replace(/[\u00e0-\u00e5]/g,"a").replace(/[\u00e8-\u00eb]/g,"e")
-          .replace(/[\u00ec-\u00ef]/g,"i").replace(/[\u00f2-\u00f6]/g,"o")
-          .replace(/[\u00f9-\u00fc]/g,"u").replace(/[^a-z0-9 ]/g," ").trim();
-        for(var k in map){if(s.indexOf(k)>=0){ent=map[k];break;}}
-      }
-      var pago=res.pagamento==="PAGO"?"PAGO":"PENDENTE";
-      var obj={id:uid++,nome:nome,ent:ent,pag:pago,dt:new Date().toLocaleDateString("pt-BR")};
-      C.unshift(obj);
-      saveData();render();
-      toast("&#x2714; "+nome+" cadastrado!");
-    })
-    .catch(function(err){
-      var msg=err&&err.message?err.message:"Erro desconhecido";
-      if(msg.indexOf("401")>=0||msg.indexOf("403")>=0){toast("Chave API invalida. Verifique em Configuracoes.");}
-      else if(msg.indexOf("429")>=0){toast("Limite de requests atingido. Aguarde um momento.");}
-      else{toast("Erro: "+msg.substring(0,60));}
-      console.error("Scan error:",err);
-    });
-  });
-});
-$$("xForm").addEventListener("click",closeForm);
-$$("xForm2").addEventListener("click",closeForm);
-$$("btnSave").addEventListener("click",salvar);
-$$("btnDel1").addEventListener("click",delUm);
-$$("pbPago").addEventListener("click",function(){setPag("PAGO");});
-$$("pbPend").addEventListener("click",function(){setPag("PENDENTE");});
-$$("xDet").addEventListener("click",closeDet);
-$$("btnEdit").addEventListener("click",function(){closeDet();openForm(dId);});
-$$("btnNo").addEventListener("click",closeConf);
-$$("btnYes").addEventListener("click",function(){if(onConf)onConf();closeConf();});
-$$("btnConfig").addEventListener("click",openConfig);
-$$("xConfig").addEventListener("click",closeConfig);
-$$("btnSaveKey").addEventListener("click",function(){
-  var k=$$("apiKeyInput").value.trim();
-  if(k){localStorage.setItem("groq_api_key",k);atualizarKeyStatus(k);toast("Chave salva!");$$("apiKeyInput").value="";}
-  else{toast("Digite uma chave valida!");}
 });
 
 loadData();render();
