@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#2255ff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Meus Clientes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Meus Clientes</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f0f1e;color:#e0e0e0;display:flex;justify-content:center;font-size:17px}
+.app{width:100%;max-width:480px;height:100vh;display:flex;flex-direction:column;position:relative;background:#1a1a2e}
+.topbar{display:flex;align-items:center;padding:14px 13px;background:#12122a;border-bottom:1px solid #2a2a5a;gap:7px;flex-shrink:0}
+.topbar h1{flex:1;font-size:19px;font-weight:600}
+.tbtn{background:none;border:1.5px solid #444;border-radius:10px;color:#aaa;font-size:13px;padding:8px 11px;cursor:pointer;white-space:nowrap;-webkit-appearance:none;min-height:44px}
+#btnPdf{border-color:#2255ff;color:#7799ff}
+#btnConfig{font-size:18px;padding:8px 10px;border-color:#555}
+#selBar{display:none;align-items:center;padding:12px 14px;background:#1e1e40;border-bottom:1px solid #2a2a5a;gap:10px;flex-shrink:0}
+#selBar label{display:flex;align-items:center;gap:10px;font-size:16px;flex:1;cursor:pointer}
+#selBar input{width:22px;height:22px;accent-color:#2255ff;cursor:pointer}
+#btnDelAll{background:#c62828;border:none;border-radius:10px;color:#fff;font-size:15px;padding:10px 16px;cursor:pointer;-webkit-appearance:none;min-height:44px;font-weight:600}
+#btnDelAll:disabled{background:#3a1515;color:#555}
+.srch{padding:12px 14px;background:#12122a;border-bottom:1px solid #222;flex-shrink:0}
+.srch input{width:100%;background:#0a0a1e;border:1.5px solid #333;border-radius:12px;padding:13px 15px;color:#e0e0e0;font-size:17px;outline:none;-webkit-appearance:none;min-height:50px}
+#list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.row{display:flex;align-items:center;gap:13px;padding:15px 14px;border-bottom:1px solid #1e1e3a;cursor:pointer;min-height:78px}
+.row.sel{background:#15153a}
+.cbcol{width:0;overflow:hidden;display:flex;align-items:center;flex-shrink:0;transition:width .15s}
+.cbcol.on{width:32px}
+.cbcol input{width:22px;height:22px;accent-color:#2255ff;cursor:pointer;flex-shrink:0}
+.av{width:50px;height:50px;border-radius:50%;background:#2255ff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;color:#fff}
+.info{flex:1;min-width:0}
+.iname{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imeta{font-size:13px;color:#777;margin-top:3px}
+.tag{display:inline-block;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;margin-top:5px}
+.tg{background:#0d2b0d;color:#4caf50;border:1px solid #1a4a1a}
+.tp{background:#2b0d0d;color:#f44336;border:1px solid #4a1a1a}
+.empty{text-align:center;padding:80px 20px;color:#444;font-size:17px;line-height:2.4}
+.fab{position:absolute;bottom:26px;right:18px;width:62px;height:62px;border-radius:50%;background:#2255ff;border:none;color:#fff;font-size:34px;cursor:pointer;box-shadow:0 6px 24px rgba(34,85,255,.6);z-index:5;display:flex;align-items:center;justify-content:center;-webkit-appearance:none}
+.fab-cam{position:absolute;bottom:26px;right:92px;width:62px;height:62px;border-radius:50%;background:#1a3a6a;border:2px solid #2255ff;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 6px 24px rgba(34,85,255,.4);z-index:5;display:flex;align-items:center;justify-content:center;-webkit-appearance:none}
+.fab-cam:active{transform:scale(0.93)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:40;display:none;align-items:flex-end;justify-content:center}
+.sheet{background:#1a1a2e;border:1.5px solid #2a2a5a;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding-bottom:40px;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.shead{display:flex;align-items:center;padding:16px 17px;border-bottom:1px solid #2a2a5a;gap:12px;position:sticky;top:0;background:#1a1a2e;z-index:1}
+.shead-t{flex:1;font-size:18px;font-weight:600}
+.bback{background:none;border:none;color:#888;font-size:26px;cursor:pointer;padding:4px 8px;min-width:44px;min-height:44px;display:flex;align-items:center}
+.ibtn{background:#2255ff;border:none;border-radius:50%;width:40px;height:40px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.fbody{padding:22px 17px;display:flex;flex-direction:column;gap:22px}
+.fg label{display:block;font-size:12px;color:#999;margin-bottom:8px;text-transform:uppercase;letter-spacing:.07em;font-weight:500}
+.req{color:#f44336}
+.fg input,.fg select{width:100%;background:#0a0a1e;border:1.5px solid #2a2a5a;border-radius:12px;padding:14px 14px;color:#e0e0e0;font-size:17px;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none;min-height:52px}
+.fg select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M0 0l7 9 7-9z' fill='%23888'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 15px center}
+.fg input:focus,.fg select:focus{border-color:#2255ff}
+select option{background:#1a1a2e}
+.prow{display:flex;gap:12px}
+.fact{display:flex;justify-content:space-between;align-items:center;padding:6px 17px 0}
+.bcancel{background:none;border:none;color:#888;font-size:17px;cursor:pointer;padding:12px 0;min-height:48px}
+.bsave{background:#2255ff;border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:600;padding:14px 36px;cursor:pointer;-webkit-appearance:none;min-height:52px}
+.bdel1{margin:12px 17px 0;width:calc(100% - 34px);background:none;border:1.5px solid #c62828;color:#f44336;border-radius:12px;font-size:16px;padding:14px;cursor:pointer;-webkit-appearance:none;min-height:52px}
+.cbox{padding:34px 20px;text-align:center}
+.cbox p{font-size:18px;margin-bottom:28px;color:#e0e0e0;line-height:1.6}
+.cbtns{display:flex;gap:14px}
+.bno{flex:1;background:none;border:1.5px solid #444;border-radius:12px;color:#aaa;font-size:17px;padding:16px;cursor:pointer;-webkit-appearance:none;min-height:54px}
+.byes{flex:1;background:#c62828;border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:700;padding:16px;cursor:pointer;-webkit-appearance:none;min-height:54px}
+.dav{width:72px;height:72px;border-radius:50%;background:#2255ff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;margin:0 auto 12px;color:#fff}
+.dname{text-align:center;font-size:21px;font-weight:700;margin-bottom:8px}
+.dtag{text-align:center;margin-bottom:16px}
+.drow{display:flex;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid #1e1e3a}
+.dlbl{font-size:13px;color:#666;min-width:100px}
+.dval{font-size:16px;color:#e0e0e0}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:13px 26px;border-radius:28px;font-size:15px;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.55);pointer-events:none;transition:opacity .3s}
+.btn-scan{width:100%;padding:18px;border-radius:14px;border:2px dashed #2255ff;background:#07071a;color:#7799ff;font-size:17px;font-weight:600;cursor:pointer;min-height:62px;display:flex;align-items:center;justify-content:center;gap:12px;-webkit-appearance:none}
+.btn-scan:active{background:#0d0d2e}
+.btn-scan:disabled{opacity:.5;cursor:default}
+.scan-hint{font-size:13px;color:#555;text-align:center;margin-top:8px}
+.key-status{font-size:13px;margin-top:8px;padding:9px 13px;border-radius:8px}
+.key-ok{background:#0d2b0d;color:#4caf50}
+.key-no{background:#2b0d0d;color:#f44336}
+.info-box{background:#0d0d22;border:1px solid #2a2a5a;border-radius:12px;padding:16px;font-size:14px;color:#888;line-height:1.9}
+.tipo-badge{display:inline-block;padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-top:6px}
+.tipo-box{background:#1a1a0d;color:#ffd700;border:1px solid #4a4a1a}
+.tipo-exc{background:#0d1a2b;color:#7799ff;border:1px solid #1a3a5a}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <h1>&#x1F465; Meus Clientes</h1>
+    <button class="tbtn" id="btnConfig">&#x2699;</button>
+    <button class="tbtn" id="btnPdf">&#x1F4C4; PDF</button>
+    <button class="tbtn" id="btnSel">&#x2611; Sel.</button>
+  </div>
+  <div id="selBar">
+    <label><input type="checkbox" id="cbAll"> Selecionar todos</label>
+    <button id="btnDelAll" disabled>&#x1F5D1; Apagar (<span id="selN">0</span>)</button>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:#12122a;border-bottom:1px solid #1e1e3a;flex-shrink:0">
+    <div style="display:flex;gap:20px;align-items:center">
+      <div style="text-align:center">
+        <div id="cntTotal" style="font-size:22px;font-weight:700;color:#e0e0e0;line-height:1">0</div>
+        <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Total</div>
+      </div>
+      <div style="width:1px;height:36px;background:#2a2a5a"></div>
+      <div style="text-align:center">
+        <div id="cntPago" style="font-size:22px;font-weight:700;color:#4caf50;line-height:1">0</div>
+        <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Pagos</div>
+      </div>
+      <div style="width:1px;height:36px;background:#2a2a5a"></div>
+      <div style="text-align:center">
+        <div id="cntPend" style="font-size:22px;font-weight:700;color:#f44336;line-height:1">0</div>
+        <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">Pendentes</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;color:#666;margin-bottom:5px">% Pagos</div>
+      <div style="width:80px;height:8px;background:#1e1e3a;border-radius:4px;overflow:hidden">
+        <div id="barPago" style="height:100%;background:linear-gradient(90deg,#2255ff,#4caf50);border-radius:4px;width:0%;transition:width .5s"></div>
+      </div>
+      <div id="barPct" style="font-size:12px;color:#888;margin-top:3px;text-align:right">0%</div>
+    </div>
+  </div>
+  <div class="srch"><input id="srch" placeholder="&#x1F50D;  Buscar cliente..."></div>
+  <div id="list"></div>
+  <button class="fab" id="fab">+</button>
+  <button class="fab-cam" id="fabCam">&#x1F4F7;</button>
+  <input type="file" id="scanFileFab" accept="image/*" capture="environment" style="display:none">
+</div>
+
+<!-- FORM -->
+<div class="ov" id="ovForm">
+  <div class="sheet">
+    <div class="shead">
+      <button class="bback" id="xForm">&#8592;</button>
+      <span class="shead-t" id="fTitle">Novo Cliente</span>
+    </div>
+    <div class="fbody">
+      <div class="fg">
+        <label>Escanear Etiqueta</label>
+        <button class="btn-scan" id="btnScan">&#x1F4F7; Fotografar Etiqueta</button>
+        <input type="file" id="scanFile" accept="image/*" capture="environment" style="display:none">
+        <div class="scan-hint" id="scanHint">Aponte a camera para a etiqueta D'Leia</div>
+      </div>
+      <div class="fg">
+        <label>Nome <span class="req">*</span></label>
+        <input id="fNome" placeholder="Nome do cliente" autocomplete="off" autocorrect="off" autocapitalize="words">
+      </div>
+      <div class="fg">
+        <label>M. Entrega</label>
+        <select id="fEnt">
+          <option value="">Selecionar...</option>
+          <option>&#x1F7E0; Laranja</option>
+          <option>&#x1F7E2; Verde</option>
+          <option>&#x26AA; Branco</option>
+          <option>&#x1F535; Azul</option>
+          <option>&#x1F534; Vermelho</option>
+          <option>&#x1F7E1; Amarelo</option>
+          <option>&#x1F4E6; BOX</option>
+          <option>&#x1F6E3; Rua</option>
+          <option>&#x1F319; Altas Horas</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Pagamento</label>
+        <div class="prow">
+          <button id="pbPago">&#x2714; PAGO</button>
+          <button id="pbPend">&#x2718; PENDENTE</button>
+        </div>
+      </div>
+    </div>
+    <div class="fact">
+      <button class="bcancel" id="xForm2">Cancelar</button>
+      <button class="bsave" id="btnSave">Salvar</button>
+    </div>
+    <button class="bdel1" id="btnDel1" style="display:none">&#x1F5D1; Excluir este cliente</button>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="ov" id="ovDet">
+  <div class="sheet">
+    <div class="shead">
+      <button class="bback" id="xDet">&#8592;</button>
+      <span class="shead-t">Detalhes</span>
+      <button class="ibtn" id="btnEdit">&#x270F;</button>
+    </div>
+    <div class="fbody" id="detBody"></div>
+  </div>
+</div>
+
+<!-- CONFIRMAR -->
+<div class="ov" id="ovConf">
+  <div class="sheet">
+    <div class="cbox">
+      <p id="confMsg">Tem certeza?</p>
+      <div class="cbtns">
+        <button class="bno" id="btnNo">Cancelar</button>
+        <button class="byes" id="btnYes">Apagar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIGURACOES -->
+<div class="ov" id="ovConfig">
+  <div class="sheet">
+    <div class="shead">
+      <button class="bback" id="xConfig">&#8592;</button>
+      <span class="shead-t">&#x2699; Configuracoes</span>
+    </div>
+    <div class="fbody">
+      <div class="fg">
+        <label>Chave API do Groq</label>
+        <input type="password" id="apiKeyInput" placeholder="gsk_...">
+        <div id="keyStatus"></div>
+        <button id="btnSaveKey" style="margin-top:12px;width:100%;background:#2255ff;border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:600;padding:14px;cursor:pointer;min-height:52px">Salvar Chave</button>
+      </div>
+      <div class="info-box">
+        <strong style="color:#e0e0e0">Como obter a chave GRATIS:</strong><br>
+        1. Acesse <strong style="color:#7799ff">console.groq.com</strong><br>
+        2. Clique em <strong style="color:#e0e0e0">Sign in</strong> (conta Google)<br>
+        3. Va em <strong style="color:#e0e0e0">API Keys</strong> no menu<br>
+        4. Clique em <strong style="color:#e0e0e0">Create API Key</strong><br>
+        5. Copie e cole aqui<br><br>
+        <span style="color:#4caf50">&#x2714; 100% gratis, sem cartao, funciona no Brasil</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var C=[],uid=1,eId=null,dId=null,pag="PENDENTE",selMode=false,selArr=[],onConf=null;
+var S_OFF="flex:1;padding:15px;border-radius:12px;border:2px solid #333;background:transparent;color:#888;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;min-height:52px";
+var S_G="flex:1;padding:15px;border-radius:12px;border:2px solid #2e7d32;background:#0d2b0d;color:#4caf50;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;min-height:52px";
+var S_R="flex:1;padding:15px;border-radius:12px;border:2px solid #c62828;background:#2b0d0d;color:#f44336;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;min-height:52px";
+
+function $$(id){return document.getElementById(id);}
+function loadData(){try{var d=JSON.parse(localStorage.getItem("meus_clientes")||"{}");C=d.c||[];uid=d.u||C.length+1;}catch(e){C=[];uid=1;}}
+function saveData(){try{localStorage.setItem("meus_clientes",JSON.stringify({c:C,u:uid}));}catch(e){}}
+function ini(n){var p=n.trim().split(" ").filter(function(x){return x;});return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():(n[0]||"?").toUpperCase();}
+function filtered(){var q=$$("srch").value.toLowerCase();return q?C.filter(function(c){return c.nome.toLowerCase().indexOf(q)>=0;}):C.slice();}
+function inSel(id){return selArr.indexOf(id)>=0;}
+function setSel(id,v){var i=selArr.indexOf(id);if(v&&i<0)selArr.push(id);if(!v&&i>=0)selArr.splice(i,1);}
+function updSel(){var n=selArr.length;$$("selN").textContent=n;$$("btnDelAll").disabled=n===0;}
+function cleanText(s){if(!s)return"-";return s.replace(/[^\u0000-\u00FF\u0100-\u024F\s]/g,"").replace(/\s+/g," ").trim()||"-";}
+
+function toast(msg){
+  var old=document.querySelector(".toast");if(old)old.remove();
+  var t=document.createElement("div");t.className="toast";t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){t.style.opacity="0";setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},300);},2800);
+}
+
+function atualizarContador(){
+  var total=C.length;
+  var pagos=C.filter(function(c){return c.pag==="PAGO";}).length;
+  var pend=total-pagos;
+  $$("cntTotal").textContent=total;
+  $$("cntPago").textContent=pagos;
+  $$("cntPend").textContent=pend;
+  var pct=total>0?Math.round((pagos/total)*100):0;
+  $$("barPago").style.width=pct+"%";
+  $$("barPct").textContent=pct+"%";
+}
+
+function render(){
+  atualizarContador();
+  var f=filtered(),el=$$("list");
+  if(!f.length){el.innerHTML="<div class=\"empty\">Nenhum cliente ainda<br><br>Toque no <strong>+</strong> para adicionar</div>";return;}
+  var h="";
+  for(var i=0;i<f.length;i++){
+    var c=f[i],s=inSel(c.id);
+    h+="<div class=\"row"+(s?" sel":"")+"\" data-id=\""+c.id+"\">";
+    h+="<div class=\"cbcol"+(selMode?" on":"")+"\">";
+    h+="<input type=\"checkbox\" class=\"rcb\" data-id=\""+c.id+"\"" +(s?" checked":"")+"></div>";
+    h+="<div class=\"av\">"+ini(c.nome)+"</div>";
+    h+="<div class=\"info\"><div class=\"iname\">"+c.nome+"</div>";
+    h+="<div class=\"imeta\">"+(c.ent||"Sem entrega")+"</div>";
+    h+="<span class=\"tag "+(c.pag==="PAGO"?"tg":"tp")+"\">"+(c.pag==="PAGO"?"&#x2714; Pago":"&#x2718; Pendente")+"</span></div></div>";
+  }
+  el.innerHTML=h;
+  el.querySelectorAll(".row").forEach(function(r){
+    var id=parseInt(r.getAttribute("data-id"));
+    r.addEventListener("click",function(){selMode?toggleItem(id):openDet(id);});
+  });
+  el.querySelectorAll(".rcb").forEach(function(cb){
+    var id=parseInt(cb.getAttribute("data-id"));
+    cb.addEventListener("click",function(e){e.stopPropagation();});
+    cb.addEventListener("change",function(){
+      setSel(id,cb.checked);
+      var r=el.querySelector("[data-id=\""+id+"\"]");
+      if(r)r.className="row"+(cb.checked?" sel":"");
+      var f2=filtered();
+      $$("cbAll").checked=f2.length>0&&f2.every(function(c){return inSel(c.id);});
+      updSel();
+    });
+  });
+}
+
+function toggleItem(id){setSel(id,!inSel(id));updSel();var f=filtered();$$("cbAll").checked=f.length>0&&f.every(function(c){return inSel(c.id);});render();}
+function toggleSelMode(){
+  selMode=!selMode;selArr=[];
+  $$("btnSel").textContent=selMode?"&#x2715; Cancelar":"&#x2611; Sel.";
+  $$("btnSel").style.borderColor=selMode?"#e53935":"#444";
+  $$("btnSel").style.color=selMode?"#e53935":"#aaa";
+  $$("btnSel").style.background=selMode?"#2a1010":"none";
+  $$("selBar").style.display=selMode?"flex":"none";
+  $$("fab").style.display=selMode?"none":"flex";
+  $$("fabCam").style.display=selMode?"none":"flex";
+  $$("cbAll").checked=false;updSel();render();
+}
+function showConf(msg,cb){$$("confMsg").textContent=msg;onConf=cb;$$("ovConf").style.display="flex";}
+function closeConf(){$$("ovConf").style.display="none";onConf=null;}
+function setPag(v){
+  pag=v;
+  $$("pbPago").style.cssText=v==="PAGO"?S_G:S_OFF;
+  $$("pbPend").style.cssText=v==="PENDENTE"?S_R:S_OFF;
+}
+function openForm(id){
+  eId=id!=null?id:null;
+  var c=null;
+  if(eId!==null)for(var i=0;i<C.length;i++){if(C[i].id===eId){c=C[i];break;}}
+  $$("fTitle").textContent=c?"Editar Cliente":"Novo Cliente";
+  $$("fNome").value=c?c.nome:"";
+  $$("fEnt").value=c?c.ent:"";
+  $$("btnDel1").style.display=c?"block":"none";
+  $$("scanHint").textContent="Aponte a camera para a etiqueta D'Leia";
+  $$("scanHint").style.color="";
+  setPag(c?c.pag:"PENDENTE");
+  $$("ovForm").style.display="flex";
+}
+function closeForm(){$$("ovForm").style.display="none";}
+function salvar(){
+  var nome=$$("fNome").value.trim();
+  if(!nome){$$("fNome").focus();$$("fNome").style.borderColor="#f44336";setTimeout(function(){$$("fNome").style.borderColor="";},1500);return;}
+  var obj={id:eId!==null?eId:uid++,nome:nome,ent:$$("fEnt").value,pag:pag,dt:new Date().toLocaleDateString("pt-BR")};
+  if(eId!==null){for(var i=0;i<C.length;i++){if(C[i].id===eId){C[i]=obj;break;}}}
+  else C.unshift(obj);
+  saveData();closeForm();render();
+}
+function delUm(){
+  if(eId===null)return;
+  var id=eId;
+  showConf("Excluir este cliente?",function(){C=C.filter(function(c){return c.id!==id;});saveData();closeForm();render();});
+}
+function delSel(){
+  var n=selArr.length;if(!n)return;
+  showConf("Apagar "+n+" cliente"+(n>1?"s":"")+"?",function(){
+    C=C.filter(function(c){return!inSel(c.id);});
+    selArr=[];saveData();updSel();$$("cbAll").checked=false;render();
+    if(selMode)toggleSelMode();
+  });
+}
+function openDet(id){
+  dId=id;var c=null;
+  for(var i=0;i<C.length;i++){if(C[i].id===id){c=C[i];break;}}
+  if(!c)return;
+  var h="<div class=\"dav\">"+ini(c.nome)+"</div>";
+  h+="<div class=\"dname\">"+c.nome+"</div>";
+  h+="<div class=\"dtag\"><span class=\"tag "+(c.pag==="PAGO"?"tg":"tp")+"\">"+(c.pag==="PAGO"?"&#x2714; Pago":"&#x2718; Pendente")+"</span></div>";
+  if(c.ent)h+="<div class=\"drow\"><span class=\"dlbl\">M. Entrega</span><span class=\"dval\">"+c.ent+"</span></div>";
+  h+="<div class=\"drow\"><span class=\"dlbl\">Cadastrado</span><span class=\"dval\">"+c.dt+"</span></div>";
+  $$("detBody").innerHTML=h;
+  $$("ovDet").style.display="flex";
+}
+function closeDet(){$$("ovDet").style.display="none";}
+
+/* ---- CONFIGURACOES ---- */
+function openConfig(){
+  var key=localStorage.getItem("groq_api_key")||"";
+  $$("apiKeyInput").value="";
+  atualizarKeyStatus(key);
+  $$("ovConfig").style.display="flex";
+}
+function closeConfig(){$$("ovConfig").style.display="none";}
+function atualizarKeyStatus(key){
+  var el=$$("keyStatus");
+  if(key){el.className="key-status key-ok";el.textContent="Chave configurada - pronto para escanear!";}
+  else{el.className="key-status key-no";el.textContent="Nenhuma chave configurada";}
+}
+
+/* ---- SCAN COM OPENROUTER ---- */
+function mapSetor(setor){
+  if(!setor)return;
+  var s=setor.toLowerCase()
+    .replace(/[\u00e0-\u00e5]/g,"a").replace(/[\u00e8-\u00eb]/g,"e")
+    .replace(/[\u00ec-\u00ef]/g,"i").replace(/[\u00f2-\u00f6]/g,"o")
+    .replace(/[\u00f9-\u00fc]/g,"u").replace(/[^a-z0-9 ]/g," ").trim();
+  var sel=$$("fEnt");
+  var map={"laranja":1,"verde":2,"branco":3,"azul":4,"vermelho":5,"amarelo":6,"box":7,"rua":8,"altas":9};
+  for(var k in map){
+    if(s.indexOf(k)>=0){sel.selectedIndex=map[k];return;}
+  }
+}
+
+function resizeImg(file,cb){
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var img=new Image();
+    img.onload=function(){
+      var max=1200,scale=Math.min(max/img.width,max/img.height,1);
+      var canvas=document.createElement("canvas");
+      canvas.width=Math.round(img.width*scale);
+      canvas.height=Math.round(img.height*scale);
+      canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+      cb(canvas.toDataURL("image/jpeg",0.85).split(",")[1]);
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function lerEtiqueta(b64,apiKey){
+  var prompt="Analise esta etiqueta da D'Leia Moda Fitness. REGRAS: Se a etiqueta tiver uma BORDA PRETA GROSSA ao redor, tipo=BOX. Se nao tiver borda preta, tipo=EXCURSAO. Retorne SOMENTE este JSON: {\"tipo\":\"BOX ou EXCURSAO\",\"nome\":\"nome completo do cliente\",\"setor\":\"cor do Setor se EXCURSAO (Verde/Branco/Azul/Laranja/Vermelho/Amarelo) ou vazio se BOX\",\"pagamento\":\"PAGO ou PENDENTE\"}. Apenas JSON puro.";
+  return fetch("https://api.groq.com/openai/v1/chat/completions",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":"Bearer "+apiKey
+    },
+    body:JSON.stringify({
+      model:"llama-3.2-11b-vision-preview",
+      messages:[{role:"user",content:[
+        {type:"image_url",image_url:{url:"data:image/jpeg;base64,"+b64}},
+        {type:"text",text:prompt}
+      ]}],
+      max_tokens:300,
+      temperature:0
+    })
+  })
+  .then(function(r){
+    return r.json().then(function(d){
+      if(!r.ok){throw new Error((d&&d.error&&d.error.message)||"HTTP "+r.status);}
+      return d;
+    });
+  })
+  .then(function(data){
+    if(!data.choices||!data.choices[0])throw new Error("Resposta vazia");
+    var txt=data.choices[0].message.content.replace(/```json|```/g,"").trim();
+    var m=txt.match(/\{[\s\S]*?\}/);
+    if(!m)throw new Error("JSON invalido: "+txt.substring(0,80));
+    return JSON.parse(m[0]);
+  });
+}
+
+/* ---- EVENTOS SCAN ---- */
+$$("btnScan").addEventListener("click",function(){
+  var key=localStorage.getItem("groq_api_key");
+  if(!key){toast("Configure a chave API primeiro!");openConfig();return;}
+  $$("scanFile").click();
+});
+
+$$("scanFile").addEventListener("change",function(e){
+  var file=e.target.files[0];if(!file)return;
+  e.target.value="";
+  var key=localStorage.getItem("groq_api_key");
+  if(!key){toast("Configure a chave API primeiro!");return;}
+
+  var btn=$$("btnScan"),hint=$$("scanHint");
+  btn.disabled=true;
+  btn.innerHTML="&#x23F3; Analisando etiqueta...";
+  hint.textContent="Identificando tipo e lendo dados...";
+  hint.style.color="#7799ff";
+
+  resizeImg(file,function(b64){
+    lerEtiqueta(b64,key)
+    .then(function(res){
+      if(res.nome)$$("fNome").value=res.nome;
+      if(res.tipo==="BOX"){
+        $$("fEnt").selectedIndex=7;
+        hint.textContent="Etiqueta BOX detectada!";
+      } else {
+        if(res.setor)mapSetor(res.setor);
+        hint.textContent="Etiqueta Excursao - Setor: "+(res.setor||"?");
+      }
+      setPag(res.pagamento==="PAGO"?"PAGO":"PENDENTE");
+      toast("Etiqueta lida! Confira os dados.");
+      hint.style.color="#4caf50";
+    })
+    .catch(function(err){
+      toast("Erro ao ler etiqueta. Tente novamente.");
+      hint.textContent="Erro - tente fotografar novamente";
+      hint.style.color="#f44336";
+    })
+    .then(function(){
+      btn.disabled=false;
+      btn.innerHTML="&#x1F4F7; Fotografar Etiqueta";
+      setTimeout(function(){hint.textContent="Aponte a camera para a etiqueta D'Leia";hint.style.color="";},5000);
+    });
+  });
+});
+
+/* ---- OUTROS EVENTOS ---- */
+$$("btnPdf").addEventListener("click",function(){
+  if(!C.length){toast("Nenhum cliente cadastrado!");return;}
+  if(!window.jspdf||!window.jspdf.jsPDF){toast("Aguarde...");return;}
+  var sorted=C.slice().sort(function(a,b){
+    if(a.pag==="PENDENTE"&&b.pag!=="PENDENTE")return -1;
+    if(a.pag!=="PENDENTE"&&b.pag==="PENDENTE")return 1;
+    return a.nome.localeCompare(b.nome);
+  });
+  var nPend=sorted.filter(function(c){return c.pag==="PENDENTE";}).length;
+  var jsPDF=window.jspdf.jsPDF,doc=new jsPDF("p","mm","a4");
+  doc.setFillColor(34,85,255);doc.rect(0,0,210,32,"F");
+  doc.setTextColor(255,255,255);doc.setFontSize(20);doc.setFont("helvetica","bold");
+  doc.text("Lista de Clientes",14,14);
+  doc.setFontSize(9);doc.setFont("helvetica","normal");
+  doc.text("Gerado: "+new Date().toLocaleDateString("pt-BR")+"   Total: "+sorted.length+"  Pendentes: "+nPend+"  Pagos: "+(sorted.length-nPend),14,25);
+  doc.autoTable({
+    startY:38,
+    head:[["#","Nome","M. Entrega","Pagamento"]],
+    body:sorted.map(function(c,i){return[i+1,c.nome,cleanText(c.ent||"-"),c.pag==="PAGO"?"PAGO":"PENDENTE"];}),
+    styles:{fontSize:10,cellPadding:5},
+    headStyles:{fillColor:[34,85,255],textColor:255,fontStyle:"bold"},
+    columnStyles:{0:{cellWidth:12,halign:"center"},1:{cellWidth:72},2:{cellWidth:62},3:{cellWidth:36,halign:"center"}},
+    didParseCell:function(data){
+      if(data.section!=="body")return;
+      var row=sorted[data.row.index];if(!row)return;
+      data.cell.styles.fillColor=row.pag==="PENDENTE"?[255,240,240]:[240,255,240];
+      if(data.column.index===3){data.cell.styles.textColor=data.cell.raw==="PENDENTE"?[200,30,30]:[25,140,25];data.cell.styles.fontStyle="bold";}
+    }
+  });
+  try{doc.save("clientes_"+new Date().toLocaleDateString("pt-BR").replace(/\//g,"-")+".pdf");toast("PDF gerado!");}
+  catch(e){window.open(doc.output("bloburl"),"_blank");}
+});
+$$("btnSel").addEventListener("click",toggleSelMode);
+$$("btnDelAll").addEventListener("click",delSel);
+$$("cbAll").addEventListener("change",function(){var f=filtered();selArr=[];if(this.checked)f.forEach(function(c){selArr.push(c.id);});updSel();render();});
+$$("srch").addEventListener("input",render);
+$$("fab").addEventListener("click",function(){
+  if(selMode) return;
+  openForm(null);
+});
+
+$$("fabCam").addEventListener("click",function(){
+  if(selMode) return;
+  var key=localStorage.getItem("groq_api_key");
+  if(!key){toast("Configure a chave API primeiro!");openConfig();return;}
+  $$("scanFileFab").click();
+});
+
+$$("scanFileFab").addEventListener("change",function(e){
+  var file=e.target.files[0];if(!file)return;
+  e.target.value="";
+  var key=localStorage.getItem("groq_api_key");
+  if(!key){toast("Configure a chave API primeiro!");return;}
+
+  toast("&#x23F3; Analisando etiqueta...");
+
+  resizeImg(file,function(b64){
+    lerEtiqueta(b64,key)
+    .then(function(res){
+      // Monta o objeto e salva direto
+      var nome=(res.nome||"").trim();
+      if(!nome){toast("Nao consegui ler o nome. Tente novamente.");return;}
+      var ent="";
+      if(res.tipo==="BOX"){
+        ent="&#x1F4E6; BOX";
+      } else {
+        var map={"laranja":"&#x1F7E0; Laranja","verde":"&#x1F7E2; Verde","branco":"&#x26AA; Branco","azul":"&#x1F535; Azul","vermelho":"&#x1F534; Vermelho","amarelo":"&#x1F7E1; Amarelo","box":"&#x1F4E6; BOX","rua":"&#x1F6E3; Rua","altas":"&#x1F319; Altas Horas"};
+        var s=(res.setor||"").toLowerCase()
+          .replace(/[\u00e0-\u00e5]/g,"a").replace(/[\u00e8-\u00eb]/g,"e")
+          .replace(/[\u00ec-\u00ef]/g,"i").replace(/[\u00f2-\u00f6]/g,"o")
+          .replace(/[\u00f9-\u00fc]/g,"u").replace(/[^a-z0-9 ]/g," ").trim();
+        for(var k in map){if(s.indexOf(k)>=0){ent=map[k];break;}}
+      }
+      var pago=res.pagamento==="PAGO"?"PAGO":"PENDENTE";
+      var obj={id:uid++,nome:nome,ent:ent,pag:pago,dt:new Date().toLocaleDateString("pt-BR")};
+      C.unshift(obj);
+      saveData();render();
+      toast("&#x2714; "+nome+" cadastrado!");
+    })
+    .catch(function(err){
+      var msg=err&&err.message?err.message:"Erro desconhecido";
+      if(msg.indexOf("401")>=0||msg.indexOf("403")>=0){toast("Chave API invalida. Verifique em Configuracoes.");}
+      else if(msg.indexOf("429")>=0){toast("Limite de requests atingido. Aguarde um momento.");}
+      else{toast("Erro: "+msg.substring(0,60));}
+      console.error("Scan error:",err);
+    });
+  });
+});
+$$("xForm").addEventListener("click",closeForm);
+$$("xForm2").addEventListener("click",closeForm);
+$$("btnSave").addEventListener("click",salvar);
+$$("btnDel1").addEventListener("click",delUm);
+$$("pbPago").addEventListener("click",function(){setPag("PAGO");});
+$$("pbPend").addEventListener("click",function(){setPag("PENDENTE");});
+$$("xDet").addEventListener("click",closeDet);
+$$("btnEdit").addEventListener("click",function(){closeDet();openForm(dId);});
+$$("btnNo").addEventListener("click",closeConf);
+$$("btnYes").addEventListener("click",function(){if(onConf)onConf();closeConf();});
+$$("btnConfig").addEventListener("click",openConfig);
+$$("xConfig").addEventListener("click",closeConfig);
+$$("btnSaveKey").addEventListener("click",function(){
+  var k=$$("apiKeyInput").value.trim();
+  if(k){localStorage.setItem("groq_api_key",k);atualizarKeyStatus(k);toast("Chave salva!");$$("apiKeyInput").value="";}
+  else{toast("Digite uma chave valida!");}
+});
+
+loadData();render();
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
+</script>
+</body>
+</html>
