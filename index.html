@@ -46,6 +46,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .fab{position:absolute;bottom:26px;right:18px;width:62px;height:62px;border-radius:50%;background:#2255ff;border:none;color:#fff;font-size:34px;cursor:pointer;box-shadow:0 6px 24px rgba(34,85,255,.6);z-index:5;display:flex;align-items:center;justify-content:center;-webkit-appearance:none}
 .fab2{position:absolute;bottom:100px;right:22px;width:54px;height:54px;border-radius:50%;background:#12122a;border:2px solid #2255ff;color:#7799ff;font-size:24px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.5);z-index:5;display:flex;align-items:center;justify-content:center;-webkit-appearance:none}
 .fab2:active{background:#0d0d2e}
+.fab2:disabled{opacity:.55}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.87);z-index:40;display:none;align-items:flex-end;justify-content:center}
 .sheet{background:#1a1a2e;border:1.5px solid #2a2a5a;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding-bottom:40px;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .shead{display:flex;align-items:center;padding:16px 17px;border-bottom:1px solid #2a2a5a;gap:12px;position:sticky;top:0;background:#1a1a2e;z-index:1}
@@ -235,7 +236,7 @@ select option{background:#1a1a2e}
 </div>
 
 <script>
-var C=[],uid=1,eId=null,dId=null,pag="PENDENTE",selMode=false,selArr=[],onConf=null;
+var C=[],uid=1,eId=null,dId=null,pag="PENDENTE",selMode=false,selArr=[],onConf=null,expressScan=false;
 var S_OFF="flex:1;padding:15px;border-radius:12px;border:2px solid #333;background:transparent;color:#888;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;min-height:52px";
 var S_G="flex:1;padding:15px;border-radius:12px;border:2px solid #2e7d32;background:#0d2b0d;color:#4caf50;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;min-height:52px";
 var S_R="flex:1;padding:15px;border-radius:12px;border:2px solid #c62828;background:#2b0d0d;color:#f44336;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;min-height:52px";
@@ -501,8 +502,8 @@ $$("camFab").addEventListener("click",function(){
   if(selMode) return;
   var key=localStorage.getItem("claude_api_key");
   if(!key){toast("Configure a chave API primeiro!");openConfig();return;}
-  openForm(null);
-  $$("btnScan").click();
+  expressScan=true;
+  $$("scanFile").click();
 });
 
 $$("btnConfig").addEventListener("click",openConfig);
@@ -520,10 +521,49 @@ $$("btnScan").addEventListener("click",function(){
 });
 
 $$("scanFile").addEventListener("change",function(e){
-  var file=e.target.files[0];if(!file)return;
+  var file=e.target.files[0];if(!file){expressScan=false;return;}
   e.target.value="";
   var key=localStorage.getItem("claude_api_key");
-  if(!key){toast("Configure a chave API primeiro!");return;}
+  if(!key){toast("Configure a chave API primeiro!");expressScan=false;return;}
+
+  /* ---- MODO EXPRESSO: le e salva direto, sem confirmar ---- */
+  if(expressScan){
+    expressScan=false;
+    var cam=$$("camFab");
+    cam.disabled=true;cam.innerHTML="&#x23F3;";
+    resizeImg(file,function(b64){
+      lerEtiqueta(b64,key)
+      .then(function(res){
+        var nome=(res.nome||"").trim();
+        var sel=$$("fEnt");sel.selectedIndex=0;
+        if(res.tipo==="BOX"){sel.selectedIndex=7;}
+        else if(res.setor){mapSetor(res.setor);}
+        var ent=sel.selectedIndex>0?sel.options[sel.selectedIndex].text:"";
+        var pgto=res.pagamento==="PAGO"?"PAGO":"PENDENTE";
+        if(!nome){
+          openForm(null);
+          $$("fEnt").value=ent;setPag(pgto);
+          toast("Nao consegui ler o nome. Digite e salve.");
+          return;
+        }
+        C.unshift({id:uid++,nome:nome,ent:ent,pag:pgto,dt:new Date().toLocaleDateString("pt-BR")});
+        saveData();render();
+        toast("\u2714 "+nome+"  ("+pgto+")");
+      })
+      .catch(function(err){
+        var msg=err&&err.message?err.message:"Erro desconhecido";
+        if(msg.indexOf("401")>=0||msg.indexOf("403")>=0){toast("Chave API invalida!");}
+        else if(msg.indexOf("429")>=0){toast("Muitos pedidos. Aguarde.");}
+        else{toast("Erro: "+msg.substring(0,60));}
+      })
+      .then(function(){
+        cam.disabled=false;cam.innerHTML="&#x1F4F7;";
+      });
+    });
+    return;
+  }
+
+  /* ---- MODO REVISAO: preenche o formulario pra conferir antes de salvar ---- */
   var btn=$$("btnScan"),hint=$$("scanHint");
   btn.disabled=true;
   btn.innerHTML="&#x23F3; Analisando etiqueta...";
