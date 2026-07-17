@@ -448,7 +448,14 @@ function resizeImg(file,cb,maxDim,q){
 }
 
 function lerEtiqueta(b64,apiKey,model){
-  var prompt="Analise esta etiqueta da D\u0027Leia Moda Fitness. REGRAS: Se a etiqueta tiver uma BORDA PRETA GROSSA ao redor, tipo=BOX. Se nao tiver borda preta, tipo=EXCURSAO. Retorne SOMENTE este JSON: {\"tipo\":\"BOX ou EXCURSAO\",\"nome\":\"nome completo do cliente\",\"setor\":\"cor do Setor se EXCURSAO (Verde/Branco/Azul/Laranja/Vermelho/Amarelo) ou vazio se BOX\",\"pagamento\":\"PAGO ou PENDENTE\"}. Apenas JSON puro.";
+  var prompt="Voce le uma etiqueta de envio da loja D\u0027Leia Moda Fitness. IGNORE totalmente o logotipo, o desenho do onibus, o nome da loja (D\u0027Leia Moda Fitness) e o cabecalho preto (ATENCAO FAZER VIDEO ABRINDO O PACOTE) - nada disso e o nome do cliente. Leia SOMENTE os campos escritos na etiqueta: "
+    +"nome = APENAS o texto que vem depois de \"Nome:\" (o cliente, ex.: David Dexten); "
+    +"setor = a cor que vem depois de \"Setor:\" (Verde, Branco, Azul, Laranja, Vermelho ou Amarelo); "
+    +"tipo = BOX se a etiqueta indicar entrega em BOX (texto \"BOX\" ou \"Entrega em BOX\", ou uma borda preta grossa em volta de toda a etiqueta), caso contrario EXCURSAO; "
+    +"pagamento = PAGO somente se estiver marcado como pago, senao PENDENTE. "
+    +"Ignore telefone, cidade, vaga, excursao e o restante. Se nao achar o campo \"Nome:\", devolva nome vazio. "
+    +"Responda SOMENTE com JSON puro, sem nenhum texto antes ou depois: "
+    +"{\"tipo\":\"BOX ou EXCURSAO\",\"nome\":\"nome do cliente\",\"setor\":\"cor ou vazio se BOX\",\"pagamento\":\"PAGO ou PENDENTE\"}";
   return fetch("https://api.anthropic.com/v1/messages",{
     method:"POST",
     headers:{
