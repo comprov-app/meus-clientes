@@ -86,7 +86,18 @@ select option{background:#1a1a2e}
 .dval{font-size:16px;color:#e0e0e0}
 .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:13px 26px;border-radius:28px;font-size:15px;z-index:999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.55);pointer-events:none;transition:opacity .3s}
 
-
+#ovCam{position:fixed;inset:0;background:#000;z-index:60;display:none}
+#ovCam.on{display:block}
+#camVideo{width:100%;height:100%;object-fit:cover}
+.camtop{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:12px;padding:16px 14px;background:linear-gradient(rgba(0,0,0,.7),transparent);color:#fff}
+#camStatus{flex:1;font-size:15px;font-weight:600;text-shadow:0 1px 4px #000;min-height:22px}
+.camstop{background:#c62828;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;padding:11px 20px;cursor:pointer;-webkit-appearance:none;min-height:46px}
+.camframe{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80%;height:34%;border:3px solid #2255ff;border-radius:16px;box-shadow:0 0 0 3000px rgba(0,0,0,.35);pointer-events:none}
+.cambot{position:absolute;bottom:0;left:0;right:0;padding:22px 16px 40px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;text-align:center}
+#camCount{font-size:24px;font-weight:800;margin-bottom:4px;text-shadow:0 1px 4px #000}
+.camhint{font-size:13px;color:#cfcfcf}
+#camFlash{position:absolute;inset:0;background:#4caf50;opacity:0;pointer-events:none;transition:opacity .12s}
+#camFlash.go{opacity:.45}
 </style>
 </head>
 <body>
@@ -235,8 +246,24 @@ select option{background:#1a1a2e}
   </div>
 </div>
 
+<!-- CAMERA AO VIVO -->
+<div id="ovCam">
+  <video id="camVideo" autoplay playsinline muted></video>
+  <div class="camframe"></div>
+  <div id="camFlash"></div>
+  <div class="camtop">
+    <span id="camStatus">Iniciando camera...</span>
+    <button class="camstop" id="camStop">Parar</button>
+  </div>
+  <div class="cambot">
+    <div id="camCount">0 lidas</div>
+    <div class="camhint">Aponte para a etiqueta &mdash; ele le e adiciona sozinho</div>
+  </div>
+</div>
+
 <script>
 var C=[],uid=1,eId=null,dId=null,pag="PENDENTE",selMode=false,selArr=[],onConf=null,expressScan=false;
+var camStream=null,camTimer=null,camBusy=false,camCount=0,camLast="",camLastAt=0;
 var S_OFF="flex:1;padding:15px;border-radius:12px;border:2px solid #333;background:transparent;color:#888;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;min-height:52px";
 var S_G="flex:1;padding:15px;border-radius:12px;border:2px solid #2e7d32;background:#0d2b0d;color:#4caf50;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;min-height:52px";
 var S_R="flex:1;padding:15px;border-radius:12px;border:2px solid #c62828;background:#2b0d0d;color:#f44336;font-size:16px;font-weight:700;cursor:pointer;-webkit-appearance:none;min-height:52px";
@@ -457,6 +484,79 @@ function lerEtiqueta(b64,apiKey,model){
   });
 }
 
+/* ---- CAMERA AO VIVO (le e adiciona sozinho) ---- */
+function openCam(){
+  var key=localStorage.getItem("claude_api_key");
+  if(!key){toast("Configure a chave API primeiro!");openConfig();return;}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    expressScan=true;$$("scanFile").click();return;
+  }
+  camCount=0;camLast="";camLastAt=0;camBusy=false;
+  $$("camCount").textContent="0 lidas";
+  $$("camStatus").textContent="Iniciando camera...";
+  $$("ovCam").classList.add("on");
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false})
+  .then(function(stream){
+    camStream=stream;
+    var vv=$$("camVideo");vv.srcObject=stream;
+    if(vv.play){var pr=vv.play();if(pr&&pr.catch)pr.catch(function(){});}
+    $$("camStatus").textContent="Aponte para a etiqueta";
+    camTimer=setInterval(camTick,2500);
+  })
+  .catch(function(){
+    $$("ovCam").classList.remove("on");
+    toast("Nao consegui abrir a camera. Usando modo foto.");
+    expressScan=true;$$("scanFile").click();
+  });
+}
+function closeCam(){
+  if(camTimer){clearInterval(camTimer);camTimer=null;}
+  if(camStream){camStream.getTracks().forEach(function(t){t.stop();});camStream=null;}
+  $$("camVideo").srcObject=null;
+  $$("ovCam").classList.remove("on");
+  render();
+}
+function camFlash(){var f=$$("camFlash");f.classList.add("go");setTimeout(function(){f.classList.remove("go");},130);}
+function camTick(){
+  if(camBusy)return;
+  var v=$$("camVideo");
+  if(!v.videoWidth)return;
+  camBusy=true;
+  var max=900,scale=Math.min(max/v.videoWidth,max/v.videoHeight,1);
+  var cv=document.createElement("canvas");
+  cv.width=Math.round(v.videoWidth*scale);cv.height=Math.round(v.videoHeight*scale);
+  cv.getContext("2d").drawImage(v,0,0,cv.width,cv.height);
+  var b64=cv.toDataURL("image/jpeg",0.7).split(",")[1];
+  var key=localStorage.getItem("claude_api_key");
+  lerEtiqueta(b64,key,"claude-haiku-4-5")
+  .then(function(res){
+    var nome=(res.nome||"").trim();
+    if(!nome){$$("camStatus").textContent="Aponte para a etiqueta";return;}
+    var now=Date.now();
+    if(nome.toLowerCase()===camLast.toLowerCase()&&(now-camLastAt)<6000){
+      $$("camStatus").textContent="Ja lido: "+nome;return;
+    }
+    var sel=$$("fEnt");sel.selectedIndex=0;
+    if(res.tipo==="BOX"){sel.selectedIndex=7;}
+    else if(res.setor){mapSetor(res.setor);}
+    var ent=sel.selectedIndex>0?sel.options[sel.selectedIndex].text:"";
+    var pgto=res.pagamento==="PAGO"?"PAGO":"PENDENTE";
+    C.unshift({id:uid++,nome:nome,ent:ent,pag:pgto,dt:new Date().toLocaleDateString("pt-BR")});
+    saveData();
+    camLast=nome;camLastAt=now;camCount++;
+    $$("camCount").textContent=camCount+(camCount===1?" lida":" lidas");
+    $$("camStatus").textContent="\u2714 "+nome+"  ("+pgto+")";
+    camFlash();
+    if(navigator.vibrate)navigator.vibrate(60);
+  })
+  .catch(function(err){
+    var msg=err&&err.message?err.message:"";
+    if(msg.indexOf("401")>=0||msg.indexOf("403")>=0){toast("Chave API invalida!");closeCam();}
+    else if(msg.indexOf("429")>=0){$$("camStatus").textContent="Aguarde um pouco...";}
+  })
+  .then(function(){camBusy=false;});
+}
+
 /* ---- OUTROS EVENTOS ---- */
 $$("btnPdf").addEventListener("click",function(){
   if(!C.length){toast("Nenhum cliente cadastrado!");return;}
@@ -500,11 +600,9 @@ $$("fab").addEventListener("click",function(){
 });
 $$("camFab").addEventListener("click",function(){
   if(selMode) return;
-  var key=localStorage.getItem("claude_api_key");
-  if(!key){toast("Configure a chave API primeiro!");openConfig();return;}
-  expressScan=true;
-  $$("scanFile").click();
+  openCam();
 });
+$$("camStop").addEventListener("click",closeCam);
 
 $$("btnConfig").addEventListener("click",openConfig);
 $$("xConfig").addEventListener("click",closeConfig);
