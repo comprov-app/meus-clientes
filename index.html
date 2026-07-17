@@ -241,6 +241,7 @@ function $$(id){return document.getElementById(id);}
 function loadData(){try{var d=JSON.parse(localStorage.getItem("meus_clientes")||"{}");C=d.c||[];uid=d.u||C.length+1;}catch(e){C=[];uid=1;}}
 function saveData(){try{localStorage.setItem("meus_clientes",JSON.stringify({c:C,u:uid}));}catch(e){}}
 function ini(n){var p=n.trim().split(" ").filter(function(x){return x;});return p.length>=2?(p[0][0]+p[1][0]).toUpperCase():(n[0]||"?").toUpperCase();}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];});}
 function filtered(){var q=$$("srch").value.toLowerCase();return q?C.filter(function(c){return c.nome.toLowerCase().indexOf(q)>=0;}):C.slice();}
 function inSel(id){return selArr.indexOf(id)>=0;}
 function setSel(id,v){var i=selArr.indexOf(id);if(v&&i<0)selArr.push(id);if(!v&&i>=0)selArr.splice(i,1);}
@@ -276,9 +277,9 @@ function render(){
     h+="<div class=\"row"+(s?" sel":"")+"\" data-id=\""+c.id+"\">";
     h+="<div class=\"cbcol"+(selMode?" on":"")+"\">";
     h+="<input type=\"checkbox\" class=\"rcb\" data-id=\""+c.id+"\"" +(s?" checked":"")+"></div>";
-    h+="<div class=\"av\">"+ini(c.nome)+"</div>";
-    h+="<div class=\"info\"><div class=\"iname\">"+c.nome+"</div>";
-    h+="<div class=\"imeta\">"+(c.ent||"Sem entrega")+"</div>";
+    h+="<div class=\"av\">"+esc(ini(c.nome))+"</div>";
+    h+="<div class=\"info\"><div class=\"iname\">"+esc(c.nome)+"</div>";
+    h+="<div class=\"imeta\">"+esc(c.ent||"Sem entrega")+"</div>";
     h+="<span class=\"tag "+(c.pag==="PAGO"?"tg":"tp")+"\">"+(c.pag==="PAGO"?"&#x2714; Pago":"&#x2718; Pendente")+"</span></div></div>";
   }
   el.innerHTML=h;
@@ -303,7 +304,7 @@ function render(){
 function toggleItem(id){setSel(id,!inSel(id));updSel();var f=filtered();$$("cbAll").checked=f.length>0&&f.every(function(c){return inSel(c.id);});render();}
 function toggleSelMode(){
   selMode=!selMode;selArr=[];
-  $$("btnSel").textContent=selMode?"&#x2715; Cancelar":"&#x2611; Sel.";
+  $$("btnSel").innerHTML=selMode?"&#x2715; Cancelar":"&#x2611; Sel.";
   $$("btnSel").style.borderColor=selMode?"#e53935":"#444";
   $$("btnSel").style.color=selMode?"#e53935":"#aaa";
   $$("btnSel").style.background=selMode?"#2a1010":"none";
@@ -335,7 +336,9 @@ function closeForm(){$$("ovForm").style.display="none";}
 function salvar(){
   var nome=$$("fNome").value.trim();
   if(!nome){$$("fNome").focus();$$("fNome").style.borderColor="#f44336";setTimeout(function(){$$("fNome").style.borderColor="";},1500);return;}
-  var obj={id:eId!==null?eId:uid++,nome:nome,ent:$$("fEnt").value,pag:pag,dt:new Date().toLocaleDateString("pt-BR")};
+  var dt=new Date().toLocaleDateString("pt-BR");
+  if(eId!==null){for(var i=0;i<C.length;i++){if(C[i].id===eId){dt=C[i].dt||dt;break;}}}
+  var obj={id:eId!==null?eId:uid++,nome:nome,ent:$$("fEnt").value,pag:pag,dt:dt};
   if(eId!==null){for(var i=0;i<C.length;i++){if(C[i].id===eId){C[i]=obj;break;}}}
   else C.unshift(obj);
   saveData();closeForm();render();
@@ -357,10 +360,10 @@ function openDet(id){
   dId=id;var c=null;
   for(var i=0;i<C.length;i++){if(C[i].id===id){c=C[i];break;}}
   if(!c)return;
-  var h="<div class=\"dav\">"+ini(c.nome)+"</div>";
-  h+="<div class=\"dname\">"+c.nome+"</div>";
+  var h="<div class=\"dav\">"+esc(ini(c.nome))+"</div>";
+  h+="<div class=\"dname\">"+esc(c.nome)+"</div>";
   h+="<div class=\"dtag\"><span class=\"tag "+(c.pag==="PAGO"?"tg":"tp")+"\">"+(c.pag==="PAGO"?"&#x2714; Pago":"&#x2718; Pendente")+"</span></div>";
-  if(c.ent)h+="<div class=\"drow\"><span class=\"dlbl\">M. Entrega</span><span class=\"dval\">"+c.ent+"</span></div>";
+  if(c.ent)h+="<div class=\"drow\"><span class=\"dlbl\">M. Entrega</span><span class=\"dval\">"+esc(c.ent)+"</span></div>";
   h+="<div class=\"drow\"><span class=\"dlbl\">Cadastrado</span><span class=\"dval\">"+c.dt+"</span></div>";
   $$("detBody").innerHTML=h;
   $$("ovDet").style.display="flex";
@@ -423,7 +426,7 @@ function lerEtiqueta(b64,apiKey){
       "anthropic-dangerous-direct-browser-access":"true"
     },
     body:JSON.stringify({
-      model:"claude-sonnet-4-6",
+      model:"claude-sonnet-5",
       max_tokens:300,
       messages:[{
         role:"user",

@@ -1,5 +1,5 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "Meus Clientes",
   "short_name": "Clientes",
   "description": "App para cadastro e controle de clientes",

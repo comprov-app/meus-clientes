@@ -1,4 +1,4 @@
-const CACHE = 'clientes-v2';
+const CACHE = 'clientes-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -31,17 +31,48 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
-  e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      if (cached) return cached;
-      return fetch(e.request).then(function(response) {
-        if (!response || response.status !== 200) return response;
-        var clone = response.clone();
-        caches.open(CACHE).then(function(cache) {
-          cache.put(e.request, clone);
+  var req = e.request;
+
+  // Só lidamos com GET. POST (ex.: chamada da API do Claude) passa direto.
+  if (req.method !== 'GET') return;
+
+  // Nunca mexer na API do Claude nem em outros domínios de API.
+  var url = new URL(req.url);
+  if (url.hostname.indexOf('anthropic.com') >= 0) return;
+
+  var isHTML = req.mode === 'navigate' ||
+               (req.headers.get('accept') || '').indexOf('text/html') >= 0;
+
+  if (isHTML) {
+    // HTML: rede primeiro, para o app SEMPRE atualizar quando você publica.
+    // Se estiver offline, usa o cache.
+    e.respondWith(
+      fetch(req).then(function(res) {
+        if (res && res.status === 200) {
+          var clone = res.clone();
+          caches.open(CACHE).then(function(cache) { cache.put(req, clone); });
+        }
+        return res;
+      }).catch(function() {
+        return caches.match(req).then(function(cached) {
+          return cached || caches.match('./index.html');
         });
-        return response;
+      })
+    );
+    return;
+  }
+
+  // Demais arquivos estáticos (ícones, PDF libs): cache primeiro, com atualização em segundo plano.
+  e.respondWith(
+    caches.match(req).then(function(cached) {
+      var network = fetch(req).then(function(res) {
+        if (res && res.status === 200 && (url.origin === self.location.origin || res.type === 'cors')) {
+          var clone = res.clone();
+          caches.open(CACHE).then(function(cache) { cache.put(req, clone); });
+        }
+        return res;
       }).catch(function() { return cached; });
+      return cached || network;
     })
   );
 });
