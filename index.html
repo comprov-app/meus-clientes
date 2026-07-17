@@ -495,9 +495,16 @@ function openCam(){
   $$("camCount").textContent="0 lidas";
   $$("camStatus").textContent="Iniciando camera...";
   $$("ovCam").classList.add("on");
-  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false})
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false})
   .then(function(stream){
     camStream=stream;
+    try{
+      var tk=stream.getVideoTracks()[0];
+      var caps=tk.getCapabilities?tk.getCapabilities():{};
+      if(caps.focusMode&&caps.focusMode.indexOf("continuous")>=0){
+        tk.applyConstraints({advanced:[{focusMode:"continuous"}]}).catch(function(){});
+      }
+    }catch(e){}
     var vv=$$("camVideo");vv.srcObject=stream;
     if(vv.play){var pr=vv.play();if(pr&&pr.catch)pr.catch(function(){});}
     $$("camStatus").textContent="Aponte para a etiqueta";
@@ -522,11 +529,11 @@ function camTick(){
   var v=$$("camVideo");
   if(!v.videoWidth)return;
   camBusy=true;
-  var max=900,scale=Math.min(max/v.videoWidth,max/v.videoHeight,1);
+  var max=1100,scale=Math.min(max/v.videoWidth,max/v.videoHeight,1);
   var cv=document.createElement("canvas");
   cv.width=Math.round(v.videoWidth*scale);cv.height=Math.round(v.videoHeight*scale);
   cv.getContext("2d").drawImage(v,0,0,cv.width,cv.height);
-  var b64=cv.toDataURL("image/jpeg",0.7).split(",")[1];
+  var b64=cv.toDataURL("image/jpeg",0.78).split(",")[1];
   var key=localStorage.getItem("claude_api_key");
   lerEtiqueta(b64,key,"claude-haiku-4-5")
   .then(function(res){
