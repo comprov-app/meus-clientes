@@ -204,7 +204,31 @@ select option{background:#1a1a2e}
   </div>
 </div>
 
-
+<!-- CONFIGURACOES -->
+<div class="ov" id="ovConfig">
+  <div class="sheet">
+    <div class="shead">
+      <button class="bback" id="xConfig">&#8592;</button>
+      <span class="shead-t">&#x2699; Configuracoes</span>
+    </div>
+    <div class="fbody">
+      <div class="fg">
+        <label>Chave API do Claude</label>
+        <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-...">
+        <div id="keyStatus"></div>
+        <button id="btnSaveKey" style="margin-top:12px;width:100%;background:#2255ff;border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:600;padding:14px;cursor:pointer;min-height:52px">Salvar Chave</button>
+      </div>
+      <div class="info-box">
+        <strong style="color:#e0e0e0">Como obter a chave:</strong><br>
+        1. Acesse <strong style="color:#7799ff">console.anthropic.com</strong><br>
+        2. Faca login ou crie conta<br>
+        3. Va em <strong style="color:#e0e0e0">API Keys</strong><br>
+        4. Clique em <strong style="color:#e0e0e0">Create Key</strong><br>
+        5. Copie e cole aqui<br><br>
+        <span style="color:#f44336">&#x26A0; A chave fica salva so neste celular.</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -531,32 +555,6 @@ $$("btnYes").addEventListener("click",function(){if(onConf)onConf();closeConf();
 loadData();render();
 if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
 </script>
-<!-- CONFIGURACOES -->
-<div class="ov" id="ovConfig">
-  <div class="sheet">
-    <div class="shead">
-      <button class="bback" id="xConfig">&#8592;</button>
-      <span class="shead-t">&#x2699; Configuracoes</span>
-    </div>
-    <div class="fbody">
-      <div class="fg">
-        <label>Chave API do Claude</label>
-        <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-...">
-        <div id="keyStatus"></div>
-        <button id="btnSaveKey" style="margin-top:12px;width:100%;background:#2255ff;border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:600;padding:14px;cursor:pointer;min-height:52px">Salvar Chave</button>
-      </div>
-      <div class="info-box">
-        <strong style="color:#e0e0e0">Como obter a chave:</strong><br>
-        1. Acesse <strong style="color:#7799ff">console.anthropic.com</strong><br>
-        2. Faca login ou crie conta<br>
-        3. Va em <strong style="color:#e0e0e0">API Keys</strong><br>
-        4. Clique em <strong style="color:#e0e0e0">Create Key</strong><br>
-        5. Copie e cole aqui<br><br>
-        <span style="color:#f44336">&#x26A0; A chave fica salva so neste celular.</span>
-      </div>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
