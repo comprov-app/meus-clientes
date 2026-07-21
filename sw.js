@@ -1,4 +1,4 @@
-const CACHE = 'clientes-v3';
+const CACHE = 'clientes-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -28,6 +28,10 @@ self.addEventListener('activate', function(e) {
     })
   );
   self.clients.claim();
+});
+
+self.addEventListener('message', function(e) {
+  if (e.data === 'skipWaiting') self.skipWaiting();
 });
 
 self.addEventListener('fetch', function(e) {

@@ -719,7 +719,24 @@ $$("btnYes").addEventListener("click",function(){if(onConf)onConf();closeConf();
 
 
 loadData();render();
-if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}
+if("serviceWorker" in navigator){
+  var swRefreshing=false;
+  navigator.serviceWorker.addEventListener("controllerchange",function(){
+    if(swRefreshing)return;swRefreshing=true;window.location.reload();
+  });
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(reg){
+      if(reg.waiting){reg.waiting.postMessage("skipWaiting");}
+      reg.addEventListener("updatefound",function(){
+        var nw=reg.installing;if(!nw)return;
+        nw.addEventListener("statechange",function(){
+          if(nw.state==="installed"&&reg.waiting){reg.waiting.postMessage("skipWaiting");}
+        });
+      });
+      reg.update();
+    }).catch(function(){});
+  });
+}
 </script>
 
 </body>
